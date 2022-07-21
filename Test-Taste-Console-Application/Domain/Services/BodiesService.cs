@@ -27,6 +27,7 @@ namespace Test_Taste_Console_Application.Domain.Services
         {
             public string PlanetId { get; set; }
             public float MoonAvgGravity { get; set; }
+            public bool HasMoon { get; set; }
         }
         public IEnumerable<PlanetMoonAvgGravity> GetPlanetMoonAverageGravity()
         {
@@ -38,10 +39,12 @@ namespace Test_Taste_Console_Application.Domain.Services
                                        on planet.Name equals moon.aroundPlanetName
                                        group new { planet, moon } by new { planet.Id } into planetGroup
                                        let MoonAvgGravity = planetGroup.Average(a => a.moon.Gravity)
+                                       let HasMoon = planetGroup.Select(a=>a.moon.Id) == null ? false : true
                                        select new PlanetMoonAvgGravity
                                        {
                                            PlanetId = planetGroup.Key.Id,
-                                           MoonAvgGravity = MoonAvgGravity
+                                           MoonAvgGravity = MoonAvgGravity,
+                                           HasMoon = HasMoon
                                        };
             return PlanetMoonAvgGravity;
         }
@@ -61,9 +64,16 @@ namespace Test_Taste_Console_Application.Domain.Services
             var planets = GetPlanetMoonAverageGravity();
             foreach (PlanetMoonAvgGravity planet in planets)
             {
-                ConsoleWriter.CreateText(new string[] { $"{planet.PlanetId}", $"{planet.MoonAvgGravity}" }, columnSizes);
-            }
+                if (planet.HasMoon)
+                {
+                    ConsoleWriter.CreateText(new string[] { $"{planet.PlanetId}", $"{planet.MoonAvgGravity}" }, columnSizes);
 
+                }
+                else
+                {
+                    ConsoleWriter.CreateText(new string[] { $"{planet.PlanetId}", $"-" }, columnSizes);
+                }
+            }
             ConsoleWriter.CreateLine(columnSizes);
             ConsoleWriter.CreateEmptyLines(2);
 
